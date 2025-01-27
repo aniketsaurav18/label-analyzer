@@ -1,19 +1,18 @@
-"use client"
+"use client";
 
-import React, { useCallback, useState } from "react"
-import { useDropzone } from "react-dropzone"
-import { motion } from "framer-motion"
-import { Upload, Loader2, Trash } from "lucide-react"
+import React, { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, Loader2, Trash } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ModernUploadFormProps {
-  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
-  input: string
-  handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  isLoading: boolean
-  setFiles: (files: FileList) => void
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  input: string;
+  handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isLoading: boolean;
+  setFiles: (files: FileList) => void;
 }
 
 export default function ModernUploadForm({
@@ -23,27 +22,28 @@ export default function ModernUploadForm({
   isLoading,
   setFiles,
 }: ModernUploadFormProps) {
-  const [isDragActive, setIsDragActive] = useState(false)
-  const [previewFiles, setPreviewFiles] = useState<File[]>([])
+  const [isDragActive, _setIsDragActive] = useState(false);
+  const [previewFiles, setPreviewFiles] = useState<File[]>([]);
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles?.length) {
-        setPreviewFiles(acceptedFiles) // Update preview files
+        setPreviewFiles(acceptedFiles); // Update preview files
         const fileList = Object.assign(acceptedFiles, {
           item: (index: number) => acceptedFiles[index],
           length: acceptedFiles.length,
-        }) as unknown as FileList
-        setFiles(fileList)
+        }) as unknown as FileList;
+        setFiles(fileList);
       }
     },
-    [setFiles],
-  )
+    [setFiles]
+  );
 
-  const { getRootProps, getInputProps, isDragAccept, isDragReject } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] }, // Allow only images for this example
-  })
+  const { getRootProps, getInputProps, isDragAccept, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: { "image/*": [] }, // Allow only images for this example
+    });
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -64,22 +64,31 @@ export default function ModernUploadForm({
           <input {...getInputProps()} />
           <div className="text-center">
             <Upload className="mx-auto h-12 w-12 text-gray-400" />
-            <p className="mt-2 text-sm text-gray-500">Drag & drop files here, or click to select files</p>
+            <p className="mt-2 text-sm text-gray-500">
+              Drag & drop files here, or click to select files
+            </p>
           </div>
         </div>
 
         {/* File Preview Panel */}
         {previewFiles.length > 0 && (
           <div className="mt-4 space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700">File Preview:</h3>
+            <h3 className="text-sm font-semibold text-gray-700">
+              File Preview:
+            </h3>
             <ul className="space-y-2">
               {previewFiles.map((file, index) => (
-                <li key={index} className="flex items-center justify-between text-sm text-gray-600">
+                <li
+                  key={index}
+                  className="flex items-center justify-between text-sm text-gray-600"
+                >
                   <span>{file.name}</span>
                   <Trash
                     className="h-4 w-4 text-gray-500 cursor-pointer"
                     onClick={() =>
-                      setPreviewFiles(prev => prev.filter((_, i) => i !== index))
+                      setPreviewFiles((prev) =>
+                        prev.filter((_, i) => i !== index)
+                      )
                     }
                   />
                 </li>
@@ -110,5 +119,5 @@ export default function ModernUploadForm({
         </div>
       </form>
     </div>
-  )
+  );
 }

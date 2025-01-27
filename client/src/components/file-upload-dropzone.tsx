@@ -1,94 +1,120 @@
-import {
-  FileUploader,
-  FileInput,
-  FileUploaderContent,
-  FileUploaderItem,
-} from "@/components/file-upload-simple";
-import { useState } from "react";
-import { DropzoneOptions } from "react-dropzone";
+import { Card, CardContent } from "./ui/card";
+import { Loader2, Upload } from "lucide-react";
+import { Button } from "./ui/button";
+// import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
 
-const FileSvgDraw = () => {
-  return (
-    <>
-      <svg
-        className="w-8 h-8 mb-3 text-primary"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 20 16"
-      >
-        <path
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-        />
-      </svg>
-      <p className="mb-1 text-sm  text-primary">
-        <span className="font-semibold">Click to upload</span>
-        &nbsp; or drag and drop
-      </p>
-      <p className="text-xs  text-primary">PNG, JPG or JPEG</p>
-    </>
-  );
-};
-
-interface FileUploadDropZoneProps {
-  files: File[] | null;
-  setFile: any;
+interface ModernUploadFormProps {
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  isLoading: boolean;
+  setFiles: (files: FileList) => void;
 }
 
-export const FileUploadDropzone = ({
-  files,
-  setFile,
-}: FileUploadDropZoneProps) => {
-  const setFiles = (file: File[] | null) => {
-    setFile(file);
-  };
+const FileUploadForm = ({
+  onSubmit,
+  isLoading,
+  setFiles,
+}: ModernUploadFormProps) => {
+  const [isDragActive, _setIsDragActive] = useState(false);
+  // const [previewFiles, setPreviewFiles] = useState<File[]>([]);
 
-  const dropzone = {
-    accept: {
-      "image/*": [],
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles?.length) {
+        // setPreviewFiles(acceptedFiles);
+        const fileList = Object.assign(acceptedFiles, {
+          item: (index: number) => acceptedFiles[index],
+          length: acceptedFiles.length,
+        }) as unknown as FileList;
+        setFiles(fileList);
+      }
     },
-    multiple: true,
-    maxFiles: 4,
-    maxSize: 1 * 1024 * 1024,
-  } satisfies DropzoneOptions;
+    [setFiles]
+  );
 
+  const { getRootProps, getInputProps, isDragAccept, isDragReject } =
+    useDropzone({
+      onDrop,
+      accept: { "image/*": [] }, // Allow only images for this example
+    });
   return (
-    <FileUploader
-      value={files}
-      orientation="vertical"
-      onValueChange={setFiles}
-      dropzoneOptions={dropzone}
-      className="relative  rounded-lg p-2 w-96 mx-auto"
-    >
-      <FileInput className="outline-dashed bg-background outline-2 outline-primary/40">
-        <div className="flex items-center justify-center flex-col pt-3 pb-4 w-full ">
-          <FileSvgDraw />
-        </div>
-      </FileInput>
-      <FileUploaderContent className="flex items-center flex-row gap-2">
-        {files?.map((file, i) => (
-          <FileUploaderItem
-            key={i}
-            index={i}
-            className="size-20 p-0 rounded-md overflow-hidden border"
-            aria-roledescription={`file ${i + 1} containing ${file.name}`}
+    <Card className="mb-8">
+      <CardContent className="p-6">
+        <form onSubmit={onSubmit} className="space-y-6">
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg transition-all duration-150 ease-in-out p-6 text-center ${
+              isDragAccept
+                ? "border-green-500 bg-green-50"
+                : isDragReject
+                ? "border-red-500 bg-red-50"
+                : isDragActive
+                ? "border-blue-500 bg-blue-50"
+                : "border-gray-300 hover:border-primary/50 hover:bg-accent/50"
+            }`}
           >
-            <img
-              src={URL.createObjectURL(file)}
-              alt={file.name}
-              height={80}
-              width={80}
-              className="size-20 rounded-md object-cover bg-primary"
-            />
-          </FileUploaderItem>
-        ))}
-      </FileUploaderContent>
-    </FileUploader>
+            <input {...getInputProps()} />
+            <div className="flex flex-col items-center justify-center">
+              <div className="rounded-full bg-primary/10 p-4 mb-4">
+                <Upload className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-1">
+                Drop your files here
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                or click to browse
+              </p>
+              <Button variant="secondary" size="sm">
+                Choose Files
+              </Button>
+            </div>
+          </div>
+
+          {/* <ScrollArea className="h-[100px] w-full rounded-md border p-4">
+            {previewFiles.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <h3 className="text-sm font-semibold text-gray-700">
+                  File Preview:
+                </h3>
+                <ul className="space-y-2">
+                  {previewFiles.map((file, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between text-sm text-gray-600"
+                    >
+                      <span>{file.name}</span>
+                      <Trash
+                        className="h-4 w-4 text-gray-500 cursor-pointer"
+                        onClick={() =>
+                          setPreviewFiles((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </ScrollArea> */}
+
+          <div className="mt-6">
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Analyze Label"
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 
-export default FileUploadDropzone;
+export default FileUploadForm;

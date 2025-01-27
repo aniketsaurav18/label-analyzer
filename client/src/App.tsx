@@ -1,26 +1,20 @@
 import { useRef, useState } from "react";
-import axios from "axios";
 import { MemoizedMarkdown } from "./components/memo-markdown";
-import ModernUploadForm from "./components/upload-form";
+import FileUploadForm from "./components/file-upload-dropzone";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import Hero from "./components/home";
 
 export default function Page() {
-  const [files, setFiles] = useState<FileList | null>(null)
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setIsLoading(true)
-    // Your submit logic here
-    // Don't forget to set isLoading back to false when done
-  }
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(event.target.value)
-  }
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,17 +74,68 @@ export default function Page() {
   };
 
   return (
-    <div>
-      <div>
-        <MemoizedMarkdown content={messages} />
+    <main className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+      <div className="container max-w-4xl mx-auto px-4 py-12">
+        <Hero />
+        <FileUploadForm
+          onSubmit={submit}
+          setFiles={setFiles}
+          isLoading={isLoading}
+        />
+
+        {/* Preview Section */}
+        {files && files.length > 0 && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>File Preview</CardTitle>
+              <CardDescription>Preview of the selected file(s)</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center py-6">
+              <ul className="overflow-auto max-h-64">
+                {Array.from(files).map((file, index) => (
+                  <li key={index} className="mb-2">
+                    {file.type.startsWith("image/") ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="max-w-full h-auto"
+                      />
+                    ) : (
+                      file.name
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Analysis Section */}
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle>Analysis</CardTitle>
+            <CardDescription>Results from your uploaded label</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center py-6">
+            {messages ? (
+              <MemoizedMarkdown content={messages} />
+            ) : isLoading ? (
+              <div className="h-56 w-auto grid place-items-center">
+                <div className="w-auto flex flex-col items-center justify-center">
+                  <img
+                    src="/test-tube-icon.gif"
+                    alt="Analysis in progress"
+                    className="h-12 w-12"
+                  />
+                  <p className="text-lg text-muted-foreground">
+                    Analyzing the contents...
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
-      <ModernUploadForm
-      onSubmit={submit}
-      input={input}
-      handleInputChange={handleInputChange}
-      isLoading={isLoading}
-      setFiles={setFiles}
-    />
-    </div>
+    </main>
   );
 }

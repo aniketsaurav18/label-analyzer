@@ -56,11 +56,14 @@ export const submitController = async (
 
     const apiResponse = await textExtractor(base64Image, mimeType);
 
+    console.log("extracted text");
+
     const result = await streamText({
       model: google("gemini-1.5-flash"),
       system: "what is life? explain in markdown.",
       prompt: "",
     });
+    console.log("streaming output");
     result.pipeTextStreamToResponse(res);
     return;
   } catch (error) {
