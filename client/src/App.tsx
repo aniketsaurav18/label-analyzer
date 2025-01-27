@@ -1,17 +1,26 @@
 import { useRef, useState } from "react";
 import axios from "axios";
 import { MemoizedMarkdown } from "./components/memo-markdown";
+import ModernUploadForm from "./components/upload-form";
 
 export default function Page() {
-  const [files, setFiles] = useState<FileList | undefined>(undefined);
-  const [input, setInput] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [files, setFiles] = useState<FileList | null>(null)
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsLoading(true)
+    // Your submit logic here
+    // Don't forget to set isLoading back to false when done
+  }
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(event.target.value)
+  }
   const [messages, setMessages] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(event.target.value);
-  };
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,7 +72,7 @@ export default function Page() {
       alert("An error occurred while uploading the file.");
     } finally {
       setIsLoading(false);
-      setFiles(undefined); // Clear the selected files
+      setFiles(null); // Clear the selected files
       if (fileInputRef.current) {
         fileInputRef.current.value = ""; // Clear the file input
       }
@@ -75,28 +84,13 @@ export default function Page() {
       <div>
         <MemoizedMarkdown content={messages} />
       </div>
-
-      <form onSubmit={submit}>
-        <input
-          type="file"
-          onChange={(event) => {
-            if (event.target.files) {
-              setFiles(event.target.files);
-            }
-          }}
-          multiple
-          ref={fileInputRef}
-        />
-        <input
-          value={input}
-          placeholder="Send message..."
-          onChange={handleInputChange}
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? "Uploading..." : "Upload"}
-        </button>
-      </form>
+      <ModernUploadForm
+      onSubmit={submit}
+      input={input}
+      handleInputChange={handleInputChange}
+      isLoading={isLoading}
+      setFiles={setFiles}
+    />
     </div>
   );
 }
